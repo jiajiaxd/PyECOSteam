@@ -4,9 +4,9 @@ import time
 import requests
 import logging
 
-import src.PyECOSteam.models as models
-from src.PyECOSteam.models import Asset, LeaseAsset
-from src.PyECOSteam.sign import generate_rsa_signature
+from . import models
+from .models import Asset, LeaseAsset
+from .sign import generate_rsa_signature
 
 logger = logging.getLogger('PyECOSteam')
 logger.addHandler(logging.NullHandler())
