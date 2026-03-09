@@ -2,12 +2,15 @@
 name = "PyECOSteam"
 dynamic = ["version"]
 description = "An unofficial API wrapper of ECOSteam's OpenAPI."
-authors = [
-    {name = "jiajiaxd", email = "i@jiajiaxd.com"},
+authors = [{ name = "jiajiaxd", email = "i@jiajiaxd.com" }]
+dependencies = [
+    "chardet>=5,<6",
+    "pydantic>=2.12.5",
+    "requests>=2.32.5",
+    "pycryptodome>=3.23.0",
 ]
-dependencies = ["pydantic>=2.12.5", "requests>=2.32.5", "pycryptodome>=3.23.0"]
 requires-python = "==3.11.*"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [build-system]
 requires = ["pdm-backend"]
