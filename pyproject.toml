@@ -1,0 +1,17 @@
+[project]
+name = "PyECOSteam"
+dynamic = ["version"]
+description = "An unofficial API wrapper of ECOSteam's OpenAPI."
+authors = [
+    {name = "jiajiaxd", email = "i@jiajiaxd.com"},
+]
+dependencies = ["pydantic>=2.12.5", "requests>=2.32.5", "pycryptodome>=3.23.0"]
+requires-python = "==3.11.*"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
