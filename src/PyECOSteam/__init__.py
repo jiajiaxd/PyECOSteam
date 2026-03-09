@@ -22,7 +22,6 @@ class ECOsteamClient:
         data["PartnerId"] = self.partnerId
         data["Timestamp"] = int(time.time())
         data["Sign"] = generate_rsa_signature(self.RSAKey, data)
-        self.rps += 1
         resp = requests.post(
             "https://openapi.ecosteam.cn" + api,
             data=json.dumps(data, indent=4),
@@ -83,11 +82,80 @@ class ECOsteamClient:
             {"PageIndex": PageIndex, "PageSize": PageSize, "SteamId": steam_id},
         )
 
+    def GetMarketSellGoodsList(
+        self,
+        HashName,
+        GameId="730",
+        StyleName=None,
+        Property=None,
+        PageIndex=1,
+        PageSize=100,
+        IsAutoShipping=None,
+        IsFirst=None,
+        StartPaintWear=None,
+        EndPaintWear=None,
+        GoodRange=None,
+    ):
+        return self.post(
+            "/Api/Market/SellGoodsList",
+            {
+                "GameId": GameId,
+                "HashName": HashName,
+                "StyleName": StyleName,
+                "Property": Property,
+                "PageIndex": PageIndex,
+                "PageSize": PageSize,
+                "IsAutoShipping": IsAutoShipping,
+                "IsFirst": IsFirst,
+                "StartPaintWear": StartPaintWear,
+                "EndPaintWear": EndPaintWear,
+                "GoodRange": GoodRange,
+            },
+        )
+
     def getFullSellGoodsList(self, steam_id):
         index = 1
         goods = list()
         while True:
             res = self.GetSellGoodsList(PageIndex=index, steam_id=steam_id).json()
+            if res["ResultCode"] != "0":
+                raise Exception(res["ResultMsg"])
+            elif res["ResultData"]["PageResult"] == []:
+                break
+            else:
+                index += 1
+                goods += res["ResultData"]["PageResult"]
+                if len(res["ResultData"]["PageResult"]) < 100:
+                    break
+        return goods
+
+    def getFullMarketSellGoodsList(
+        self,
+        HashName,
+        GameId="730",
+        StyleName=None,
+        Property=None,
+        IsAutoShipping=None,
+        IsFirst=None,
+        StartPaintWear=None,
+        EndPaintWear=None,
+        GoodRange=None,
+    ):
+        index = 1
+        goods = list()
+        while True:
+            res = self.GetMarketSellGoodsList(
+                HashName=HashName,
+                GameId=GameId,
+                StyleName=StyleName,
+                Property=Property,
+                PageIndex=index,
+                IsAutoShipping=IsAutoShipping,
+                IsFirst=IsFirst,
+                StartPaintWear=StartPaintWear,
+                EndPaintWear=EndPaintWear,
+                GoodRange=GoodRange,
+            ).json()
             if res["ResultCode"] != "0":
                 raise Exception(res["ResultMsg"])
             elif res["ResultData"]["PageResult"] == []:
@@ -118,14 +186,17 @@ class ECOsteamClient:
     # def GoodsPublishedBatchEdit(self, goodsBatchEditList: list):
     #     return self.post("/Api/Selling/GoodsPublishedBatchEdit", data={"goodsBatchEditList": goodsBatchEditList})
 
-    def QueryStock(self, index, PageSize=100):
-        return self.post("/Api/Selling/QueryStock", data={"PageIndex": index, "PageSize": PageSize})
+    def QueryStock(self, PageIndex=1, PageSize=100, SteamId=None, GameId=None, StockStatus=None):
+        return self.post(
+            "/Api/Selling/QueryStock",
+            data={"PageIndex": PageIndex, "PageSize": PageSize, "SteamId": SteamId, "GameId": GameId, "StockStatus": StockStatus},
+        )
 
-    def getFullInventory(self):
+    def getFullInventory(self, SteamId=None, GameId=None, StockStatus=None):
         index = 1
         inv = list()
         while True:
-            res = self.QueryStock(index).json()
+            res = self.QueryStock(PageIndex=index, SteamId=SteamId, GameId=GameId, StockStatus=StockStatus).json()
             if res["ResultCode"] != "0":
                 raise Exception(res["ResultMsg"])
             elif res["ResultData"]["PageResult"] == []:
@@ -133,12 +204,15 @@ class ECOsteamClient:
             else:
                 index += 1
                 inv += res["ResultData"]["PageResult"]
+                if len(res["ResultData"]["PageResult"]) < 100:
+                    break
+        return inv
 
     def searchStockIds(self, assetId: list):
         index = 1
         inv = dict()
         while True:
-            res = self.QueryStock(index).json()
+            res = self.QueryStock(PageIndex=index).json()
             if res["ResultCode"] != "0":
                 raise Exception(res["ResultMsg"])
             elif res["ResultData"]["PageResult"] == []:
@@ -153,8 +227,8 @@ class ECOsteamClient:
                         if assetId == []:
                             return inv
 
-    def RefreshUserSteamStock(self):
-        return self.post("/Api/Selling/RefreshUserSteamStock", data={})
+    def RefreshUserSteamStock(self, SteamId, GameId="730"):
+        return self.post("/Api/Selling/RefreshUserSteamStock", data={"SteamId": SteamId, "GameId": GameId})
 
     def QuerySteamAccountList(self):
         return self.post("/Api/Merchant/QuerySteamAccountList", data={})
